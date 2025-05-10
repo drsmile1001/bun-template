@@ -11,6 +11,6 @@
   },
   "module": "src/index.js",
   "bun-create": {
-    "start": "bun run setup.ts"
+    "postinstall": "bun run setup.ts"
   }
 }
