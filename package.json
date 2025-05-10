@@ -9,5 +9,8 @@
   "devDependencies": {
     "bun-types": "latest"
   },
-  "module": "src/index.js"
+  "module": "src/index.js",
+  "bun-create": {
+    "start": "bun run setup.ts"
+  }
 }
