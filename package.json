@@ -1,16 +1,13 @@
 {
-  "name": "bun-template",
+  "name": "bun-hello-world",
   "version": "0.1.0",
-  "description": "Bun Template",
-  "bin": {
-    "bun-template": "index.ts"
-  },
-  "type": "module",
+  "description": "Hello World Bun Template",
   "scripts": {},
   "dependencies": {
     "cac": "^6.7.14"
   },
   "devDependencies": {
     "bun-types": "latest"
-  }
+  },
+  "module": "src/index.js"
 }

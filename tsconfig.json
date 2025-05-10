@@ -6,6 +6,10 @@
     "jsxFragmentFactory": "Html.Fragment",
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "paths": {
+      "@/*": ["./src/*"],
+      "~test/*": ["./test/*"]
+    },
     "types": ["bun-types"],
     "verbatimModuleSyntax": true,
     "esModuleInterop": true,
