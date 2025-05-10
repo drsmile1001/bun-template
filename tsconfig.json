@@ -1,9 +1,6 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "jsx": "react",
-    "jsxFactory": "Html.createElement",
-    "jsxFragmentFactory": "Html.Fragment",
     "module": "ESNext",
     "moduleResolution": "bundler",
     "paths": {
