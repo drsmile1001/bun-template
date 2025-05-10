@@ -2,12 +2,15 @@
   "name": "bun-template",
   "version": "0.1.0",
   "description": "Bun Template",
+  "bin": {
+    "bun-template": "index.ts"
+  },
+  "type": "module",
   "scripts": {},
   "dependencies": {
     "cac": "^6.7.14"
   },
   "devDependencies": {
     "bun-types": "latest"
-  },
-  "module": "cli.js"
+  }
 }
