@@ -14,5 +14,8 @@
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "bun-types": "latest",
     "prettier": "^3.6.2"
+  },
+  "bun-create": {
+    "start": "bun run index"
   }
 }
