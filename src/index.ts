@@ -1,11 +1,13 @@
 import { cac } from "cac";
-import { greet } from "./funcs/Greet";
 
+import { createDefaultLoggerFromEnv } from "~shared/Logger";
+
+import { registerGreeting } from "./app/Greeting";
+
+const logger = createDefaultLoggerFromEnv();
 const cli = cac();
 
-cli.command("hello [name]", "向你打招呼").action((name: string = "world") => {
-  greet(name);
-});
+registerGreeting(cli, logger);
 
 cli.help();
 cli.parse(process.argv, { run: false });
@@ -18,6 +20,6 @@ if (!cli.matchedCommand) {
 try {
   await cli.runMatchedCommand();
 } catch (error) {
-  console.error(error);
+  logger.error({ error }, "執行命令時發生錯誤");
   process.exit(1);
 }

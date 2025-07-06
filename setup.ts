@@ -1,6 +1,9 @@
-import { readFile, writeFile, rm } from "fs/promises";
+import { readFile, rm, writeFile } from "fs/promises";
 import { basename, resolve } from "path";
 
+import { createDefaultLoggerFromEnv } from "~shared/Logger";
+
+const logger = createDefaultLoggerFromEnv();
 const dir = process.cwd();
 const projectName = basename(dir);
 const pkgPath = resolve(dir, "package.json");
@@ -12,16 +15,24 @@ try {
   pkg.name = projectName;
 
   await writeFile(pkgPath, JSON.stringify(pkg, null, 2));
-  console.log(`📦 專案名稱已設為 "${projectName}"`);
+  logger.info({
+    emoji: "📦",
+  })`專案名稱已設為 "${projectName}"`;
 
   setTimeout(async () => {
     try {
       await rm(selfPath);
-      console.log("🧹 已刪除 setup.ts");
-    } catch (err) {
-      console.warn("⚠️ 無法刪除 setup.ts：", err);
+      logger.info({
+        emoji: "🧹",
+      })`已刪除 setup.ts`;
+    } catch (error) {
+      logger.warn({
+        error,
+      })`無法刪除 setup.ts`;
     }
   }, 100);
-} catch (err) {
-  console.error("❌ 初始化失敗：", err);
+} catch (error) {
+  logger.error({
+    error,
+  })`無法讀取或寫入 package.json`;
 }
