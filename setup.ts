@@ -19,18 +19,16 @@ try {
     emoji: "📦",
   })`專案名稱已設為 "${projectName}"`;
 
-  setTimeout(async () => {
-    try {
-      await rm(selfPath);
-      logger.info({
-        emoji: "🧹",
-      })`已刪除 setup.ts`;
-    } catch (error) {
-      logger.warn({
-        error,
-      })`無法刪除 setup.ts`;
-    }
-  }, 100);
+  try {
+    await rm(selfPath);
+    logger.info({
+      emoji: "🧹",
+    })`已刪除 setup.ts`;
+  } catch (error) {
+    logger.warn({
+      error,
+    })`無法刪除 setup.ts`;
+  }
 } catch (error) {
   logger.error({
     error,
