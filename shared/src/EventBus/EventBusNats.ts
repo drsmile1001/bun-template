@@ -142,7 +142,7 @@ export class EventBusNats<TEvents extends Events> implements EventBus<TEvents> {
                 });
               }
             } else {
-              this.logger.info({
+              this.logger.debug({
                 event: envelope.event,
               })`沒有對應的處理器`;
             }
