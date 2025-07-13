@@ -1,52 +1,49 @@
 import { $ } from "bun";
 
-import { Type as t } from "@sinclair/typebox";
 import type { CAC } from "cac";
 import { format } from "date-fns";
 import { existsSync } from "fs";
 
-import { buildConfigFactoryEnv } from "~shared/ConfigFactory";
 import type { Logger } from "~shared/Logger";
 import { type Result, err, isErr, ok } from "~shared/utils/Result";
 
-const getSubtreeManagerConfig = buildConfigFactoryEnv(
-  t.Object({
-    TOOL_SUBTREE_REMOTE: t.String(),
-    TOOL_SUBTREE_NAME: t.String(),
-    TOOL_SUBTREE_LOCAL: t.Optional(t.String()),
-  })
-);
-
 export function registerSubtreeManager(cli: CAC, baseLogger: Logger): void {
-  function buildContext() {
-    const { TOOL_SUBTREE_REMOTE, TOOL_SUBTREE_LOCAL, TOOL_SUBTREE_NAME } =
-      getSubtreeManagerConfig();
-    const manager = new SubtreeManager(baseLogger, {
-      name: TOOL_SUBTREE_NAME,
-      remote: TOOL_SUBTREE_REMOTE,
-      remoteBranch: "main",
-      local: TOOL_SUBTREE_LOCAL,
+  cli
+    .command("subtree:init <name> <remote>", "配置共用程式碼")
+    .action(async (name, remote) => {
+      const manager = new SubtreeManager(baseLogger, {
+        name: name,
+        remote: remote,
+        remoteBranch: "main",
+        local: "local",
+      });
+      await manager.init();
     });
 
-    return {
-      manager,
-    };
-  }
-
-  cli.command("subtree:init", "配置共用程式碼").action(async () => {
-    const { manager } = buildContext();
-    await manager.init();
-  });
-
-  cli.command("subtree:pull", "更新共用程式碼").action(async () => {
-    const { manager } = buildContext();
-    await manager.pull();
-  });
+  cli
+    .command("subtree:pull <name> <remote>", "更新共用程式碼")
+    .action(async (name, remote) => {
+      const manager = new SubtreeManager(baseLogger, {
+        name: name,
+        remote: remote,
+        remoteBranch: "main",
+        local: "local",
+      });
+      await manager.pull();
+    });
 
   cli
-    .command("subtree:push", "將本地共用程式碼修改推送回上游")
-    .action(async () => {
-      const { manager } = buildContext();
+    .command(
+      "subtree:push <name> <remote> <local>",
+      "將本地共用程式碼修改推送回上游"
+    )
+    .action(async (name, remote, local) => {
+      const manager = new SubtreeManager(baseLogger, {
+        name: name,
+        remote: remote,
+        remoteBranch: "main",
+        local: local,
+      });
       await manager.push();
     });
 }
@@ -54,6 +51,7 @@ export function registerSubtreeManager(cli: CAC, baseLogger: Logger): void {
 export class SubtreeManager {
   private readonly logger: Logger;
   private readonly name: string;
+  private readonly dir: string;
   private readonly remote: string;
   private readonly remoteBranch: string;
   private readonly local?: string;
@@ -69,6 +67,7 @@ export class SubtreeManager {
   ) {
     this.logger = logger.extend("SubtreeManager");
     this.name = options.name;
+    this.dir = `deps/${this.name}`;
     this.remote = options.remote;
     this.remoteBranch = options.remoteBranch;
     this.local = options.local;
@@ -77,8 +76,8 @@ export class SubtreeManager {
   async init() {
     const logger = this.logger.extend("init");
     logger.info({ emoji: "🔧" })`正在初始化 Subtree ${this.name}...`;
-    if (existsSync(this.name)) {
-      logger.warn()`Subtree 目錄 ${this.name} 已存在，跳過初始化`;
+    if (existsSync(this.dir)) {
+      logger.warn()`Subtree 目錄 ${this.dir} 已存在，跳過初始化`;
       return;
     }
 
@@ -95,7 +94,7 @@ export class SubtreeManager {
     logger.info({
       emoji: "🌲",
     })`提交為 ${this.formatCommitHash(commit)} 開始 subtree add`;
-    await $`git subtree add --prefix=${this.name} ${this.remote} ${this.remoteBranch} --squash`;
+    await $`git subtree add --prefix=${this.dir} ${this.remote} ${this.remoteBranch} --squash`;
     const tag = this.formatTag(commit);
     await $`git tag ${tag}`;
     logger.info({ emoji: "🏷️" })`已建立 tag: ${tag}`;
@@ -108,7 +107,7 @@ export class SubtreeManager {
 
   formatTag(commit: string) {
     const commitShort = this.formatCommitHash(commit);
-    return `${this.name}@${commitShort}`;
+    return `${this.dir}@${commitShort}`;
   }
 
   async findRemoteCommit(): Promise<Result<string>> {
@@ -129,8 +128,8 @@ export class SubtreeManager {
       emoji: "🔄",
     });
     logger.info()`正在更新 Subtree ${this.name}...`;
-    if (!existsSync(this.name)) {
-      logger.error(`Subtree 目錄 ${this.name} 不存在，請先初始化`);
+    if (!existsSync(this.dir)) {
+      logger.error(`Subtree 目錄 ${this.dir} 不存在，請先初始化`);
       return;
     }
 
@@ -147,7 +146,7 @@ export class SubtreeManager {
     const before = await this.getCurrentCommit();
 
     logger.info()`提交為 ${this.formatCommitHash(upstreamCommit)} 開始 subtree pull`;
-    await $`git subtree pull --prefix=${this.name} ${this.remote} ${this.remoteBranch} --squash`;
+    await $`git subtree pull --prefix=${this.dir} ${this.remote} ${this.remoteBranch} --squash`;
 
     const after = await this.getCurrentCommit();
     if (before === after) {
@@ -169,8 +168,8 @@ export class SubtreeManager {
       emoji: "🚀",
     });
     logger.info()`正在推送 Subtree ${this.name}...`;
-    if (!existsSync(this.name)) {
-      logger.error(`Subtree 目錄 ${this.name} 不存在，請先初始化`);
+    if (!existsSync(this.dir)) {
+      logger.error(`Subtree 目錄 ${this.dir} 不存在，請先初始化`);
       return;
     }
     if (!this.local) {
@@ -181,8 +180,7 @@ export class SubtreeManager {
     const branch = `${this.local}/${format(new Date(), "yyyyMMdd-HHmmss")}`;
 
     logger.info({ emoji: "🌿" })`開始拆出 subtree 分支`;
-    const result =
-      await $`git subtree split --prefix=${this.name} -b ${branch}`;
+    const result = await $`git subtree split --prefix=${this.dir} -b ${branch}`;
     const newCommit = result.stdout.toString().trim();
 
     logger.info({

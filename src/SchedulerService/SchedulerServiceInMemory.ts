@@ -40,12 +40,14 @@ export class SchedulerServiceInMemory implements SchedulerService {
         );
       }
     });
+    const nextRun = job.nextRun();
 
-    if (!job.nextRun()) {
+    if (!nextRun) {
       this.logger.warn(`Cron 表達式 "${cronExpression}" 無效，無法啟動任務`);
     }
 
     this.jobs[id] = job;
+    logger.info()`已註冊排程任務 ${id}，下一次執行時間: ${nextRun}`;
   }
 
   [Symbol.dispose]() {
