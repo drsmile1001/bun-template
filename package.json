@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "description": "Hello World Bun Template",
   "scripts": {
-    "index": "bun run src/index.ts"
+    "index": "bun run src/index.ts",
+    "format": "bunx prettier . --write"
   },
   "dependencies": {
     "@sinclair/typebox": "^0.34.37",
